@@ -1,9 +1,7 @@
-use crate::world::{WORLD_LOW_RESOLUTION, WORLD_HIGH_RESOLUTION};
+use crate::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
 use tui::{
     style::Color,
-    widgets::canvas::{
-        Painter, Shape
-    },
+    widgets::canvas::{Painter, Shape},
 };
 
 #[derive(Debug, Clone, Copy)]
