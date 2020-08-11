@@ -4,6 +4,7 @@ mod world;
 
 use crate::custom_map::{CustomMap, CustomMapResolution};
 use crate::util::event::{Event, Events};
+use nalgebra::Similarity2;
 use std::error::Error;
 use std::io;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
@@ -24,6 +25,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Setup event handlers
     let events = Events::new();
 
+    let mut scale: f64 = 1.0;
+
     loop {
         terminal.draw(|f| {
             let world = Canvas::default()
@@ -34,6 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ctx.draw(&CustomMap {
                         resolution: CustomMapResolution::High,
                         color: Color::White,
+                        transform: Similarity2::identity().append_scaling(scale),
                     });
                 });
             let size = f.size();
@@ -43,6 +47,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Event::Input(key) = events.next()? {
             if key == Key::Char('q') {
                 break;
+            }
+            if key == Key::PageUp {
+                scale = scale * 2.0;
+            }
+            if key == Key::PageDown {
+                scale = scale / 2.0;
             }
         }
     }

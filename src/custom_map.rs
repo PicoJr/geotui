@@ -1,4 +1,6 @@
 use crate::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
+use nalgebra::Point2;
+use nalgebra::Similarity2;
 use tui::{
     style::Color,
     widgets::canvas::{Painter, Shape},
@@ -24,6 +26,7 @@ impl CustomMapResolution {
 pub struct CustomMap {
     pub resolution: CustomMapResolution,
     pub color: Color,
+    pub transform: Similarity2<f64>,
 }
 
 impl Default for CustomMap {
@@ -31,6 +34,7 @@ impl Default for CustomMap {
         CustomMap {
             resolution: CustomMapResolution::Low,
             color: Color::Reset,
+            transform: Similarity2::identity(),
         }
     }
 }
@@ -38,7 +42,9 @@ impl Default for CustomMap {
 impl Shape for CustomMap {
     fn draw(&self, painter: &mut Painter) {
         for (x, y) in self.resolution.data() {
-            if let Some((x, y)) = painter.get_point(*x, *y) {
+            let point = Point2::new(*x, *y);
+            let transformed: Point2<f64> = self.transform * point;
+            if let Some((x, y)) = painter.get_point(transformed.x, transformed.y) {
                 painter.paint(x, y, self.color);
             }
         }
