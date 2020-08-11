@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Setup event handlers
     let events = Events::new();
 
-    let mut scale: f64 = 1.0;
+    let mut transform: Similarity2<f64> = Similarity2::identity();
 
     loop {
         terminal.draw(|f| {
@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ctx.draw(&CustomMap {
                         resolution: CustomMapResolution::High,
                         color: Color::White,
-                        transform: Similarity2::identity().append_scaling(scale),
+                        transform,
                     });
                 });
             let size = f.size();
@@ -49,10 +49,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 break;
             }
             if key == Key::PageUp {
-                scale = scale * 2.0;
+                transform.set_scaling(transform.scaling() * 1.1);
             }
             if key == Key::PageDown {
-                scale = scale / 2.0;
+                transform.set_scaling(transform.scaling() * 0.9);
             }
         }
     }
