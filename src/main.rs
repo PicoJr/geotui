@@ -1,6 +1,9 @@
+mod util;
+
+use crate::util::event::{Event, Events};
 use std::error::Error;
 use std::io;
-use termion::{raw::IntoRawMode, input::MouseTerminal, screen::AlternateScreen};
+use termion::{raw::IntoRawMode, input::MouseTerminal, screen::AlternateScreen, event::Key};
 use tui::backend::TermionBackend;
 use tui::style::Color;
 use tui::widgets::canvas::{Canvas, Map, MapResolution};
@@ -14,7 +17,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    for _ in 1..400 {
+    
+    // Setup event handlers
+    let events = Events::new();
+    
+    loop {
 
     terminal.draw(|f| {
         let world = Canvas::default()
@@ -30,6 +37,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         let size = f.size();
         f.render_widget(world, size);
     })?;
+
+        if let Event::Input(key) = events.next()? {
+            if key == Key::Char('q') {
+                break;
+            }
+        }
     }
     Ok(())
 }
