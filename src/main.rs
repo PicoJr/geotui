@@ -1,12 +1,15 @@
 mod util;
+mod custom_map;
+mod world;
 
 use crate::util::event::{Event, Events};
+use crate::custom_map::{CustomMap, CustomMapResolution};
 use std::error::Error;
 use std::io;
 use termion::{raw::IntoRawMode, input::MouseTerminal, screen::AlternateScreen, event::Key};
 use tui::backend::TermionBackend;
 use tui::style::Color;
-use tui::widgets::canvas::{Canvas, Map, MapResolution};
+use tui::widgets::canvas::Canvas;
 use tui::widgets::{Block, Borders};
 use tui::Terminal;
 
@@ -29,8 +32,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             .x_bounds([-180.0, 180.0])
             .y_bounds([-90.0, 90.0])
             .paint(|ctx| {
-                ctx.draw(&Map {
-                    resolution: MapResolution::High,
+                ctx.draw(&CustomMap {
+                    resolution: CustomMapResolution::High,
                     color: Color::White,
                 });
             });
