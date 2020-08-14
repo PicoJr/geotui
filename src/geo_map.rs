@@ -7,39 +7,29 @@ use tui::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub enum CustomMapResolution {
+pub enum GeoMapResolution {
     Low,
     High,
 }
 
-impl CustomMapResolution {
+impl GeoMapResolution {
     fn data(self) -> &'static [(f64, f64)] {
         match self {
-            CustomMapResolution::Low => &WORLD_LOW_RESOLUTION,
-            CustomMapResolution::High => &WORLD_HIGH_RESOLUTION,
+            GeoMapResolution::Low => &WORLD_LOW_RESOLUTION,
+            GeoMapResolution::High => &WORLD_HIGH_RESOLUTION,
         }
     }
 }
 
 /// Shape to draw a world map with the given resolution and color
 #[derive(Debug, Clone)]
-pub struct CustomMap {
-    pub resolution: CustomMapResolution,
+pub struct GeoMap {
+    pub resolution: GeoMapResolution,
     pub color: Color,
     pub transform: Similarity2<f64>,
 }
 
-impl Default for CustomMap {
-    fn default() -> CustomMap {
-        CustomMap {
-            resolution: CustomMapResolution::Low,
-            color: Color::Reset,
-            transform: Similarity2::identity(),
-        }
-    }
-}
-
-impl Shape for CustomMap {
+impl Shape for GeoMap {
     fn draw(&self, painter: &mut Painter) {
         for (x, y) in self.resolution.data() {
             let point = Point2::new(*x, *y);

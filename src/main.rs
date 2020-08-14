@@ -5,15 +5,16 @@ extern crate rocket;
 extern crate rocket_contrib;
 
 mod control;
-mod custom_map;
 mod geo_canvas;
+mod geo_map;
+mod geo_points;
 mod geo_rest;
 mod util;
 mod world;
 
 use crate::control::{control, ControlTransform, TU};
-use crate::custom_map::{CustomMap, CustomMapResolution};
 use crate::geo_canvas::geometry_as_shape;
+use crate::geo_map::{GeoMap, GeoMapResolution};
 use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
 use geo_types::Geometry;
@@ -62,8 +63,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .x_bounds([-180.0, 180.0])
                 .y_bounds([-90.0, 90.0])
                 .paint(|ctx| {
-                    ctx.draw(&CustomMap {
-                        resolution: CustomMapResolution::High,
+                    ctx.draw(&GeoMap {
+                        resolution: GeoMapResolution::High,
                         color: Color::White,
                         transform,
                     });
