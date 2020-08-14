@@ -86,7 +86,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::Char('q') => break,
                 _ => {
                     let control_transform = control(&key);
-                    transform = transform * control_transform;
+                    transform = control_transform * transform;
                 }
             }
         }
