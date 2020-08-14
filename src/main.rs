@@ -1,12 +1,23 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
+#[macro_use]
+extern crate serde_derive;
+
 mod custom_map;
+mod geo_rest;
 mod util;
 mod world;
 
 use crate::custom_map::{CustomMap, CustomMapResolution};
+use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
 use nalgebra::{Similarity2, Vector2};
 use std::error::Error;
-use std::io;
+use std::sync::mpsc;
+use std::{io, thread};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::backend::TermionBackend;
 use tui::style::Color;
@@ -38,6 +49,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
 
     let mut transform: Similarity2<f64> = Similarity2::identity();
+
+    let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
+
+    let rocket_tx = tx.clone();
+    let watcher = thread::spawn(move || {
+        rocket(rocket_tx).launch();
+    });
 
     loop {
         terminal.draw(|f| {
