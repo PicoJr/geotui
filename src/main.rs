@@ -7,13 +7,17 @@ extern crate rocket_contrib;
 extern crate serde_derive;
 
 mod custom_map;
+mod geo_canvas;
 mod geo_rest;
 mod util;
 mod world;
 
 use crate::custom_map::{CustomMap, CustomMapResolution};
+use crate::geo_canvas::GeometryShape;
 use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
+use geojson::quick_collection;
+use geojson::Error::GeoJsonExpectedObject;
 use nalgebra::{Similarity2, Vector2};
 use std::error::Error;
 use std::sync::mpsc;
@@ -49,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
 
     let mut transform: Similarity2<f64> = Similarity2::identity();
+    let mut geo_shape: Vec<GeometryShape> = vec![];
 
     let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
 
@@ -58,6 +63,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     loop {
+        if let Ok(geo_json) = rx.try_recv() {
+            if let Ok(collection) = quick_collection::<f64>(&geo_json) {
+                geo_shape = collection.iter().cloned().map(|g| g.into()).collect();
+                for geom in collection {
+                    println!("geom: {:?}", geom);
+                }
+            }
+        }
         terminal.draw(|f| {
             let world = Canvas::default()
                 .block(Block::default().title("Canvas").borders(Borders::ALL))
@@ -69,6 +82,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         color: Color::White,
                         transform,
                     });
+                    ctx.layer();
+                    for geometry_shape in &geo_shape {
+                        ctx.draw(geometry_shape);
+                    }
                 });
             let size = f.size();
             f.render_widget(world, size);
