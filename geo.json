@@ -2,9 +2,9 @@
   "type": "Feature",
   "geometry": {
     "type": "Point",
-    "coordinates": [125.6, 10.1]
+    "coordinates": [1.44, 43.6]
   },
   "properties": {
-    "name": "Dinagat Islands"
+    "name": "Toulouse"
   }
 }

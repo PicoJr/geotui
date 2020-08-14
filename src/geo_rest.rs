@@ -15,7 +15,7 @@ fn new(message: Json<GeoJson>, map: State<Mutex<GeoJsonSender>>) -> JsonValue {
         Ok(()) => json!({ "status": "ok" }),
         Err(_) => json!({
             "status": "error",
-            "reason": "ID exists. Try put."
+            "reason": "Invalid GeoJson"
         }),
     }
 }
