@@ -13,11 +13,8 @@ nalgebra = "0.18"
 rocket = "0.4.5"
 serde = "1.0"
 serde_json = "1.0"
-serde_derive = "1.0"
-geo = "0.14.1"
 geo-types = "0.6.0"
 geojson = { version = "0.19.0", features=["geo-types"] }
-anyhow = "1.0"
 
 [dependencies.rocket_contrib]
 version = "0.4.5"

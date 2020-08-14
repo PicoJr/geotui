@@ -1,9 +1,8 @@
 use crate::control::{ControlTransform, TU};
-use anyhow::{anyhow, Result};
-use geo_types::{Geometry, Point};
-use nalgebra::{Point2, Vector2};
+use geo_types::Geometry;
+use nalgebra::Point2;
 use tui::style::Color;
-use tui::widgets::canvas::{Painter, Points, Shape};
+use tui::widgets::canvas::{Painter, Shape};
 
 pub struct GeoPoints {
     pub coords: Vec<(TU, TU)>,

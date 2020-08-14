@@ -3,8 +3,6 @@
 extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
-#[macro_use]
-extern crate serde_derive;
 
 mod control;
 mod custom_map;
@@ -20,8 +18,7 @@ use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
 use geo_types::Geometry;
 use geojson::quick_collection;
-use geojson::Error::GeoJsonExpectedObject;
-use nalgebra::{Similarity2, Vector2};
+use nalgebra::Similarity2;
 use std::error::Error;
 use std::sync::mpsc;
 use std::{io, thread};
@@ -48,8 +45,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
 
-    let rocket_tx = tx.clone();
-    let watcher = thread::spawn(move || {
+    let rocket_tx = tx;
+    let _watcher = thread::spawn(move || {
         rocket(rocket_tx).launch();
     });
 

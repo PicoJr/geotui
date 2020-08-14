@@ -1,13 +1,10 @@
-use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Mutex;
-use std::thread;
 
 use rocket::State;
 use rocket_contrib::json::{Json, JsonValue};
 
-use geo_types::GeometryCollection;
-use geojson::{quick_collection, GeoJson};
+use geojson::GeoJson;
 
 pub(crate) type GeoJsonSender = Sender<GeoJson>;
 pub(crate) type GeoJsonReceiver = Receiver<GeoJson>;
