@@ -1,37 +1,46 @@
+use crate::control::{ControlTransform, TU};
 use anyhow::{anyhow, Result};
 use geo_types::{Geometry, Point};
+use nalgebra::{Point2, Vector2};
 use tui::style::Color;
 use tui::widgets::canvas::{Painter, Points, Shape};
 
-pub(crate) struct GeometryShape(Geometry<f64>);
-
-impl From<Geometry<f64>> for GeometryShape {
-    fn from(geometry: Geometry<f64>) -> Self {
-        GeometryShape(geometry)
-    }
+pub struct GeoPoints {
+    pub coords: Vec<(TU, TU)>,
+    pub color: Color,
 }
 
-impl Shape for GeometryShape {
+pub enum GeoShape {
+    GeoPoints(GeoPoints),
+}
+
+impl Shape for GeoShape {
     fn draw<'a, 'b>(&self, painter: &mut Painter<'a, 'b>) {
-        match self.0 {
-            Geometry::Point(point) => {
-                let point_shape = Points {
-                    coords: &[(point.0.x, point.0.y)],
-                    color: Color::Red,
-                };
-                point_shape.draw(painter)
+        match self {
+            GeoShape::GeoPoints(geo_points) => {
+                for (x, y) in &geo_points.coords {
+                    if let Some((x, y)) = painter.get_point(*x, *y) {
+                        painter.paint(x, y, geo_points.color);
+                    }
+                }
             }
-            _ => {}
         }
     }
 }
 
-pub(crate) fn into_canvas_shape(geometry: Geometry<f64>) -> anyhow::Result<Box<dyn Shape>> {
+pub(crate) fn geometry_as_shape(
+    geometry: &Geometry<TU>,
+    transform: &ControlTransform,
+) -> Option<GeoShape> {
     match geometry {
-        Geometry::Point(_point) => Ok(Box::new(Points {
-            coords: &[(10.0, 10.0)],
-            color: Color::Red,
-        })),
-        _ => Err(anyhow!("unsupported geometry: {:?}", geometry)),
+        Geometry::Point(point) => {
+            let point = Point2::new(point.0.x, point.0.y);
+            let transformed: Point2<f64> = transform * point;
+            Some(GeoShape::GeoPoints(GeoPoints {
+                coords: vec![(transformed.x, transformed.y)],
+                color: Color::Red,
+            }))
+        }
+        _ => None,
     }
 }

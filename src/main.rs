@@ -6,16 +6,19 @@ extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
 
+mod control;
 mod custom_map;
 mod geo_canvas;
 mod geo_rest;
 mod util;
 mod world;
 
+use crate::control::{control, ControlTransform, TU};
 use crate::custom_map::{CustomMap, CustomMapResolution};
-use crate::geo_canvas::GeometryShape;
+use crate::geo_canvas::geometry_as_shape;
 use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
+use geo_types::Geometry;
 use geojson::quick_collection;
 use geojson::Error::GeoJsonExpectedObject;
 use nalgebra::{Similarity2, Vector2};
@@ -29,18 +32,6 @@ use tui::widgets::canvas::Canvas;
 use tui::widgets::{Block, Borders};
 use tui::Terminal;
 
-fn control(key: &Key) -> Similarity2<f64> {
-    match key {
-        Key::PageUp => Similarity2::from_scaling(1.1),
-        Key::PageDown => Similarity2::from_scaling(0.9),
-        Key::Left => Similarity2::new(Vector2::new(2.0, 0.0), 0.0, 1.0),
-        Key::Right => Similarity2::new(Vector2::new(-2.0, 0.0), 0.0, 1.0),
-        Key::Down => Similarity2::new(Vector2::new(0.0, 2.0), 0.0, 1.0),
-        Key::Up => Similarity2::new(Vector2::new(0.0, -2.0), 0.0, 1.0),
-        _ => Similarity2::identity(),
-    }
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
@@ -52,8 +43,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Setup event handlers
     let events = Events::new();
 
-    let mut transform: Similarity2<f64> = Similarity2::identity();
-    let mut geo_shape: Vec<GeometryShape> = vec![];
+    let mut transform: ControlTransform = Similarity2::identity();
+    let mut geometries: Vec<Geometry<TU>> = vec![];
 
     let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
 
@@ -65,10 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         if let Ok(geo_json) = rx.try_recv() {
             if let Ok(collection) = quick_collection::<f64>(&geo_json) {
-                geo_shape = collection.iter().cloned().map(|g| g.into()).collect();
-                for geom in collection {
-                    println!("geom: {:?}", geom);
-                }
+                geometries = collection.iter().cloned().collect();
             }
         }
         terminal.draw(|f| {
@@ -83,8 +71,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                         transform,
                     });
                     ctx.layer();
-                    for geometry_shape in &geo_shape {
-                        ctx.draw(geometry_shape);
+                    for geometry in &geometries {
+                        if let Some(shape) = geometry_as_shape(geometry, &transform) {
+                            ctx.draw(&shape);
+                        }
                     }
                 });
             let size = f.size();
