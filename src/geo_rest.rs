@@ -28,7 +28,7 @@ fn not_found() -> JsonValue {
     })
 }
 
-pub(crate) fn rocket(tx: GeoJsonSender) -> rocket::Rocket {
+pub(crate) fn build_rocket(tx: GeoJsonSender) -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes![new])
         .register(catchers![not_found])

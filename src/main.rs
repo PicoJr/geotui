@@ -15,7 +15,7 @@ mod world;
 use crate::control::{control, ControlTransform, TU};
 use crate::geo_canvas::geometry_as_shape;
 use crate::geo_map::{GeoMap, GeoMapResolution};
-use crate::geo_rest::{rocket, GeoJsonReceiver, GeoJsonSender};
+use crate::geo_rest::{build_rocket, GeoJsonReceiver, GeoJsonSender};
 use crate::util::event::{Event, Events};
 use geo_types::Geometry;
 use geojson::quick_collection;
@@ -31,6 +31,19 @@ use tui::text::{Span, Spans};
 use tui::widgets::canvas::Canvas;
 use tui::widgets::{Block, Borders, Paragraph};
 use tui::Terminal;
+
+fn get_help_paragraph(address: &String, port: u16) -> Paragraph<'static> {
+    let help_text = vec![
+        Spans::from(Span::raw(
+            "Quit [q] Toggle help [h] Nav [←↑→↓] Zoom [PageUp/PageDown]",
+        )),
+        Spans::from(Span::raw(format!(
+            "Upload GeoJson to http://{}:{}/geo",
+            address, port
+        ))),
+    ];
+    Paragraph::new(help_text).block(Block::default().title("Help").borders(Borders::ALL))
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
@@ -50,8 +63,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
 
     let rocket_tx = tx;
+    let rocket = build_rocket(rocket_tx);
+    let config = rocket.config();
+    let address = String::from(&config.address);
+    let port = config.port;
     let _watcher = thread::spawn(move || {
-        rocket(rocket_tx).launch();
+        rocket.launch();
     });
 
     loop {
@@ -89,14 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 });
             f.render_widget(world, chunks[0]);
-            let help_text = vec![
-                Spans::from(Span::raw(
-                    "Quit [q] Toggle help [h] Nav [←↑→↓] Zoom [PageUp/PageDown]",
-                )),
-                Spans::from(Span::raw("Upload GeoJson to http://localhost:8000/geo")),
-            ];
-            let help = Paragraph::new(help_text)
-                .block(Block::default().title("Help").borders(Borders::ALL));
+            let help = get_help_paragraph(&address, port);
             f.render_widget(help, chunks[1]);
         })?;
 
