@@ -27,8 +27,10 @@ use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::Altern
 use tui::backend::TermionBackend;
 use tui::style::Color;
 use tui::widgets::canvas::Canvas;
-use tui::widgets::{Block, Borders};
+use tui::widgets::{Block, Borders, Paragraph};
 use tui::Terminal;
+use tui::layout::{Layout, Direction, Constraint};
+use tui::text::Span;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
@@ -58,6 +60,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         terminal.draw(|f| {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(1)
+                .constraints(
+                    [
+                        Constraint::Percentage(90),
+                        Constraint::Percentage(10),
+                    ].as_ref()
+                )
+                .split(f.size());
             let world = Canvas::default()
                 .block(Block::default().title("World").borders(Borders::ALL))
                 .x_bounds([-180.0, 180.0])
@@ -75,8 +87,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                         }
                     }
                 });
-            let size = f.size();
-            f.render_widget(world, size);
+            f.render_widget(world, chunks[0]);
+            let help = Paragraph::new(
+                Span::raw("Quit [q] Nav [←↑→↓] Zoom [PageUp/PageDown] -- Upload GeoJson to http://localhost:8000/geo")
+                )
+                .block(Block::default().title("Help").borders(Borders::ALL));
+            f.render_widget(help, chunks[1]);
         })?;
 
         if let Event::Input(key) = events.next()? {
