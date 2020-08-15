@@ -1,6 +1,6 @@
 use crate::control::{ControlTransform, TU};
 use crate::geo_points::GeoPoints;
-use geo_types::Geometry;
+use geo_types::{Geometry, Polygon};
 use nalgebra::Point2;
 use tui::style::Color;
 use tui::widgets::canvas::{Line, Painter, Shape};
@@ -43,6 +43,25 @@ fn transform_line(line: Line, transform: &ControlTransform) -> Line {
     }
 }
 
+fn transform_polygon(polygon: &Polygon<TU>, transform: &ControlTransform) -> Vec<Line> {
+    polygon
+        .exterior()
+        .lines()
+        .map(|line| {
+            transform_line(
+                Line {
+                    x1: line.start.x,
+                    y1: line.start.y,
+                    x2: line.end.x,
+                    y2: line.end.y,
+                    color: Color::Red,
+                },
+                transform,
+            )
+        })
+        .collect()
+}
+
 pub(crate) fn geometry_as_shape(
     geometry: &Geometry<TU>,
     transform: &ControlTransform,
@@ -66,22 +85,14 @@ pub(crate) fn geometry_as_shape(
             },
             transform,
         ))),
-        Geometry::Polygon(polygon) => Some(GeoShape::GeoPolygon(
-            polygon
-                .exterior()
-                .lines()
-                .map(|line| {
-                    transform_line(
-                        Line {
-                            x1: line.start.x,
-                            y1: line.start.y,
-                            x2: line.end.x,
-                            y2: line.end.y,
-                            color: Color::Red,
-                        },
-                        transform,
-                    )
-                })
+        Geometry::Polygon(polygon) => {
+            Some(GeoShape::GeoPolygon(transform_polygon(polygon, transform)))
+        }
+        Geometry::MultiPolygon(polygons) => Some(GeoShape::GeoPolygon(
+            polygons
+                .0
+                .iter()
+                .flat_map(|polygon| transform_polygon(polygon, transform))
                 .collect(),
         )),
         _ => None,
