@@ -25,12 +25,12 @@ use std::sync::mpsc;
 use std::{io, thread};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::backend::TermionBackend;
+use tui::layout::{Constraint, Direction, Layout};
 use tui::style::Color;
+use tui::text::{Span, Spans};
 use tui::widgets::canvas::Canvas;
 use tui::widgets::{Block, Borders, Paragraph};
 use tui::Terminal;
-use tui::layout::{Layout, Direction, Constraint};
-use tui::text::Span;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
@@ -44,6 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
 
     let mut transform: ControlTransform = Similarity2::identity();
+    let mut show_help: bool = true;
     let mut geometries: Vec<Geometry<TU>> = vec![];
 
     let (tx, rx): (GeoJsonSender, GeoJsonReceiver) = mpsc::channel();
@@ -60,15 +61,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
         terminal.draw(|f| {
+            let constraints: Vec<Constraint> = if show_help {
+                vec![Constraint::Percentage(90), Constraint::Percentage(10)]
+            } else {
+                vec![Constraint::Percentage(100), Constraint::Percentage(0)]
+            };
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(1)
-                .constraints(
-                    [
-                        Constraint::Percentage(90),
-                        Constraint::Percentage(10),
-                    ].as_ref()
-                )
+                .constraints(constraints)
                 .split(f.size());
             let world = Canvas::default()
                 .block(Block::default().title("World").borders(Borders::ALL))
@@ -88,9 +89,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 });
             f.render_widget(world, chunks[0]);
-            let help = Paragraph::new(
-                Span::raw("Quit [q] Nav [←↑→↓] Zoom [PageUp/PageDown] -- Upload GeoJson to http://localhost:8000/geo")
-                )
+            let help_text = vec![
+                Spans::from(Span::raw(
+                    "Quit [q] Toggle help [h] Nav [←↑→↓] Zoom [PageUp/PageDown]",
+                )),
+                Spans::from(Span::raw("Upload GeoJson to http://localhost:8000/geo")),
+            ];
+            let help = Paragraph::new(help_text)
                 .block(Block::default().title("Help").borders(Borders::ALL));
             f.render_widget(help, chunks[1]);
         })?;
@@ -98,6 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Event::Input(key) = events.next()? {
             match key {
                 Key::Char('q') => break,
+                Key::Char('h') => show_help = !show_help, // toggle help
                 _ => {
                     let control_transform = control(&key);
                     transform = control_transform * transform;
