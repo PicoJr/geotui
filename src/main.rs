@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         terminal.draw(|f| {
             let world = Canvas::default()
-                .block(Block::default().title("Canvas").borders(Borders::ALL))
+                .block(Block::default().title("World").borders(Borders::ALL))
                 .x_bounds([-180.0, 180.0])
                 .y_bounds([-90.0, 90.0])
                 .paint(|ctx| {

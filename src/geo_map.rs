@@ -1,4 +1,4 @@
-use crate::world::{WORLD_HIGH_RESOLUTION, WORLD_LOW_RESOLUTION};
+use crate::world::WORLD_HIGH_RESOLUTION;
 use nalgebra::Point2;
 use nalgebra::Similarity2;
 use tui::{
@@ -8,14 +8,12 @@ use tui::{
 
 #[derive(Debug, Clone, Copy)]
 pub enum GeoMapResolution {
-    Low,
     High,
 }
 
 impl GeoMapResolution {
     fn data(self) -> &'static [(f64, f64)] {
         match self {
-            GeoMapResolution::Low => &WORLD_LOW_RESOLUTION,
             GeoMapResolution::High => &WORLD_HIGH_RESOLUTION,
         }
     }

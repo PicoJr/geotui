@@ -9,7 +9,7 @@ use geojson::GeoJson;
 pub(crate) type GeoJsonSender = Sender<GeoJson>;
 pub(crate) type GeoJsonReceiver = Receiver<GeoJson>;
 
-#[post("/polygon", format = "json", data = "<message>")]
+#[post("/geo", format = "json", data = "<message>")]
 fn new(message: Json<GeoJson>, map: State<Mutex<GeoJsonSender>>) -> JsonValue {
     match map.lock().expect("lock").send(message.into_inner()) {
         Ok(()) => json!({ "status": "ok" }),

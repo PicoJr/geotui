@@ -1,5 +1,4 @@
 use crate::control::TU;
-use nalgebra::Point2;
 use tui::style::Color;
 use tui::widgets::canvas::{Painter, Shape};
 
