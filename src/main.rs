@@ -32,7 +32,7 @@ use tui::widgets::canvas::Canvas;
 use tui::widgets::{Block, Borders, Paragraph};
 use tui::Terminal;
 
-fn get_help_paragraph(address: &String, port: u16) -> Paragraph<'static> {
+fn get_help_paragraph(address: &str, port: u16) -> Paragraph<'static> {
     let help_text = vec![
         Spans::from(Span::raw(
             "Quit [q] Toggle help [h] Nav [←↑→↓] Zoom [PageUp/PageDown]",
